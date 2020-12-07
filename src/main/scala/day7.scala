@@ -1,11 +1,11 @@
 import scala.io.Source
 
 object day7 {
+  type Bag = (Int, String)
   def main(args: Array[String]): Unit = {
     val input = Source.fromResource("input_day7.txt").getLines().toList
-    def extractGraph(mapFunc: (String, Set[(Int, String)]) => Map[String, Set[(Int, String)]])
-        : Map[String, Set[(Int, String)]] =
-      input.foldLeft(Map[String, Set[(Int, String)]]()) { case (crrGraph, line) =>
+    def extractGraph(mapFunc: (String, Set[Bag]) => Map[String, Set[Bag]]): Map[String, Set[Bag]] =
+      input.foldLeft(Map[String, Set[Bag]]()) { case (crrGraph, line) =>
         val (bagContainer, bagContainedList) = line match {
           case s"${container} bags contain ${containedListStr}." =>
             (
@@ -15,39 +15,37 @@ object day7 {
               })
         }
         val lineMap = mapFunc(bagContainer, bagContainedList.toSet)
-        crrGraph ++ lineMap.map { case (k, v) => k -> (v ++ crrGraph.getOrElse(k, Set[(Int, String)]())) }
+        crrGraph ++ lineMap.map { case (k, v) => k -> (v ++ crrGraph.getOrElse(k, Set[Bag]())) }
       }
-    val containerGraph: Map[String, Set[(Int, String)]] = extractGraph((a, b) => Map(a -> b))
-    println(containerGraph)
-    val cachedContainer = scala.collection.mutable.Map[String, Int]()
-    def countBag(bag: String): Int = {
-      if (cachedContainer.contains(bag)) cachedContainer(bag)
+
+    val containedGraph = extractGraph((a, b) => b.map(tup => (tup._2, Set((0, a)))).toMap)
+    def countContainer(bag: String, visited: Set[String]): (Int, Set[String]) = {
+      if (!visited.contains(bag)) {
+        containedGraph.getOrElse(bag, Set()).foldLeft((1, visited ++ Set(bag))) {
+          case ((crrCount: Int, crrVisited: Set[String]), (_, parent)) =>
+            val (newCount, newVisited) = countContainer(parent, crrVisited)
+            (crrCount + newCount, crrVisited ++ newVisited)
+        }
+      } else
+        (0, visited)
+    }
+    println(countContainer("shiny gold", Set())._1 - 1)
+
+    val containerGraph: Map[String, Set[Bag]] = extractGraph((a, b) => Map(a -> b))
+    def countBag(bag: String, cachedContainer: Map[String, Int]): (Int, Map[String, Int]) = {
+      if (cachedContainer.contains(bag)) (cachedContainer(bag), cachedContainer)
       else {
         val countChild =
-          containerGraph.getOrElse(bag, Set[(Int, String)]()).foldLeft(0) { case (crrCount, (childNum, childBag)) =>
-            crrCount + childNum * countBag(childBag)
+          containerGraph.getOrElse(bag, Set[Bag]()).foldLeft((0, cachedContainer)) {
+            case ((crrCount: Int, crrCached: Map[String, Int]), (childNum: Int, childBag: String)) =>
+              val (bagChildCount, newCached) = countBag(childBag, crrCached)
+              (crrCount + childNum * bagChildCount, crrCached ++ newCached)
           }
-        val res = countChild + 1
-        cachedContainer.addOne((bag, res))
-        res
+        (countChild._1 + 1, countChild._2 ++ Map((bag, countChild._1 + 1)))
       }
     }
-    println(countBag("shiny gold") - 1)
+    println(countBag("shiny gold", Map())._1 - 1)
 
-    val containedGraph       = extractGraph((a, b) => b.map(tup => (tup._2, Set((0, a)))).toMap)
-    var visited: Set[String] = Set()
-    var count                = 0
-    def countContainer(bag: String): Unit = {
-      if (!visited.contains(bag)) {
-        visited = visited ++ Set(bag)
-        count += 1
-        for (child <- containedGraph.getOrElse(bag, Set())) {
-          countContainer(child._2)
-        }
-      }
-    }
-    countContainer("shiny gold")
-    println(count - 1)
   }
 
 }
