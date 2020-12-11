@@ -14,13 +14,9 @@ object day9 {
         else if (toMatch.contains(range(crrIdx))) true
         else helper(toMatch ++ Set(sum - range(crrIdx)), crrIdx + 1)
       }
-      val res = helper(Set(), 0)
-      res
+      helper(Set(), 0)
     }
-    val weakInd = input.indices.find {
-      case ind if ind < 25 => false
-      case ind             => !twoSumExist(input.slice(ind - 25, ind), input(ind))
-    }
+    val weakInd    = (25 until input.length) find (ind => !twoSumExist(input.slice(ind - 25, ind), input(ind)))
     val weakNumber = input(weakInd.get)
     println(weakNumber)
 
@@ -34,5 +30,4 @@ object day9 {
     }
     println(spread(0, 1, input.head + input(1)))
   }
-
 }
