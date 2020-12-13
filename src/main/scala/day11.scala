@@ -70,8 +70,12 @@ object day11 {
         sol(iterRes._1, iterRes._2)(stateFn)
       }
     }
-    println(sol(input, isChange = true)(crrState1))
+//    println(sol(input, isChange = true)(crrState1))
+    val t0 = System.nanoTime()
+
     println(sol(input, isChange = true)(crrState2))
+    val t1 = System.nanoTime()
+    println("Elapsed time: " + (t1 - t0) + "ns")
 
   }
 
