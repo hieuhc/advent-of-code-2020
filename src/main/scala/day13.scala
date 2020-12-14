@@ -20,16 +20,16 @@ object day13 {
     def solve(equation1: (Long, Long), equation2: (Long, Long)): (Long, Long) = {
       val (coef1, const1) = equation1
       val (coef2, const2) = equation2
-      val gcdOfFirst      = gcd(coef1, coef2)
-      val m: Long         = coef2 / gcdOfFirst
+      val gcdCoef         = greatestCommonDivisor(coef1, coef2)
+      val m: Long         = coef2 / gcdCoef
       val n: Long         = (0L until coef2).find(p => (coef1 * p + const1 - const2) % coef2 == 0).get
       (coef1 * m, coef1 * n + const1)
     }
 
     @tailrec
-    def gcd(a: Long, b: Long): Long = b match {
+    def greatestCommonDivisor(a: Long, b: Long): Long = b match {
       case 0 => a
-      case _ => gcd(b, a % b)
+      case _ => greatestCommonDivisor(b, a % b)
     }
 
     println(busSeq.reduce(solve)._2)
