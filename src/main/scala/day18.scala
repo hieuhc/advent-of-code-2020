@@ -1,4 +1,3 @@
-import scala.annotation.tailrec
 import scala.io.Source
 
 object day18 {
@@ -8,7 +7,6 @@ object day18 {
   def main(args: Array[String]): Unit = {
     val input: List[String] = Source.fromResource("input_day18.txt").getLines().toList.map(_.replaceAll("\\s", ""))
     def eval(eq: String)(evalNoParen: String => Long): Long = {
-      @tailrec
       val eqNoParen =
         eq.foldLeft(("", "", 0)) { case ((primaryList: String, secondaryList: String, nParen: Int), ch: Char) =>
           if (nParen == 0) {
