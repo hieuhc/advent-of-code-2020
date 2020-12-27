@@ -66,6 +66,8 @@ object day20 {
       (0, tilePerRow - 1),
       (tilePerRow - 1, 0),
       (tilePerRow - 1, tilePerRow - 1)).map(tilesWithBorder(_).id).product)
+
+//    part 2
     val tileRemovedBorder: Map[GridPos, TilePos] = tilesWithBorder.map { case (gridPos, tilePos) =>
       val removedBorderGrid = tilePos.grid.drop(1).dropRight(1).map(_.drop(1).dropRight(1))
       (gridPos, TilePos(tilePos.id, removedBorderGrid))
@@ -75,33 +77,24 @@ object day20 {
       val rowIdxInTile: Int = rowIdx % 8
       (0 until tilePerRow).map(tileRemovedBorder(_, tileRowIdx).grid(rowIdxInTile)).mkString("")
     }
-    val baseMonsterPos: Seq[(Int, Int)] = Seq(
-      (18, 0),
-      (0, 1),
-      (5, 1),
-      (6, 1),
-      (11, 1),
-      (12, 1),
-      (17, 1),
-      (18, 1),
-      (19, 1),
-      (1, 2),
-      (4, 2),
-      (7, 2),
-      (10, 2),
-      (13, 2),
-      (16, 2))
+    val monsterPattern = """                  # 
+                           |#    ##    ##    ###
+                           | #  #  #  #  #  #   """.stripMargin
+    val monsterPositions: Seq[(Int, Int)] =
+      monsterPattern.split("\n").zipWithIndex.flatMap { case (line: String, y: Int) =>
+        line.zipWithIndex.collect { case (ch: Char, x: Int) if (ch == '#') => (x, y) }
+      }
     def countSeaMonster(grid: Grid): Int = {
       val gridMap: Map[GridPos, Char] =
         grid.zipWithIndex.flatMap(s => s._1.zipWithIndex.map { case (c, xIdx) => ((xIdx, s._2), c) }).toMap
       (for (x <- 0 until grid.head.length;
         y     <- grid.indices)
         yield {
-          baseMonsterPos.forall { case (baseX, baseY) => gridMap.getOrElse((baseX + x, baseY + y), "") == '#' }
+          monsterPositions.forall { case (baseX, baseY) => gridMap.getOrElse((baseX + x, baseY + y), "") == '#' }
         }).count(_ == true)
     }
     val allImages      = allRotationGrid(image) ++ allRotationGrid(flipGrid(image))
     val numSeaMonsters = allImages.map(countSeaMonster).max
-    println(image.map(s => s.count(_ == '#')).sum - numSeaMonsters * baseMonsterPos.length)
+    println(image.map(s => s.count(_ == '#')).sum - numSeaMonsters * monsterPositions.length)
   }
 }
